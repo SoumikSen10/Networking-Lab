@@ -1,0 +1,235 @@
+1) UDP
+
+client:-
+
+#UDP client that receives messages from server
+
+import socket
+
+server_name = 'localhost'
+server_port = 8001
+
+#create a client side UDP socket
+s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+
+#s.bind((server_name,server_port)) #connect to server with server_name and server port
+
+serverAddrPort = ("127.0.0.1", 8001)
+
+data_to_send = input("Data to server:")
+while data_to_send!='exit':
+    s.sendto(data_to_send.encode(), serverAddrPort)
+
+    data_from_server = s.recvfrom(1024)
+    msg = "Message from Server :{}".format(data_from_server[0].decode())  
+    print(msg)
+    #print('server says: '+str(data_from_server.decode()))
+    data_to_send = input("Data to server:")
+
+s.close() #close the connection
+
+
+server:-
+
+import socket
+import time
+
+client_name = 'localhost'
+client_port = 8001
+
+
+#create a UDP socket at server side 
+s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+s.bind((client_name, client_port))
+#time.sleep(2) #let the server wait for 2 seconds 
+
+#data_receive, addr = s.recvfrom(msg,(client_name,client_port))  #specifying client address as UDP is connectionless protocol, server does not know where to send the packet
+
+while True:
+    name, addr1 = s.recvfrom(1024)
+    print('Message from client: ' +str(name.decode()))
+    data_send = input("Message to client:")
+    s.sendto(data_send.encode(), addr1)
+
+s.close() #close the connection
+
+
+2) FTP
+
+client:-
+
+import socket
+
+server_name = 'localhost'
+server_port = 8000
+
+s = socket.socket() #create TCP socket
+
+s.connect((server_name,server_port)) #connect to server
+
+filename = input('Enter filename: ') #provide the filename
+
+#filename = 'test_md.txt'
+
+s.send(filename.encode()) #send the filename to the server
+
+content = s.recv(1024) #receive file content from server
+
+print(content.decode()) #print the content in string format
+
+s.close() #close the connection
+
+
+server:-
+
+import socket
+
+host = 'localhost'
+port = 8000
+
+s = socket.socket() #create a TCP socket
+
+s.bind((host,port)) #bind socket to host and port num
+
+s.listen(1) #max 1 connection will be accepted
+
+c, addr = s.accept() #wait till client connects
+print('A client requested a connection')
+
+fname = c.recv(1024) #accept file name from client
+
+fname = str(fname.decode()) #decode filename to string format
+
+print('Filename received from client: '+fname) 
+
+try:
+    f = open(fname, 'rb') #open the file at server side
+    content = f.read() #read content of the file
+    c.send(content) #send the content of the file, no need to use encode() as by default the content is read as byte
+    f.close() #close the file
+except FileNotFoundError:
+    c.send(b'File does not exist')
+
+c.close() #disconnect the server
+
+
+
+3) TCP
+
+client:-
+
+import socket
+
+server_ip = '127.0.0.1'
+server_port = 8002
+
+s = socket.socket()
+s.connect((server_ip, server_port))
+
+print("Available operations: addition, subtraction, multiplication, division, fibonacci, primecheck , leap_yearcheck")
+
+data_to_server = input('Operation number1 number2: ')
+
+while data_to_server != 'exit':
+    s.send(data_to_server.encode())
+
+    data_from_server = s.recv(1024)
+    print(data_to_server.split()[0] + ' result: ' + str(data_from_server.decode()))
+
+    data_to_server = input('Operation number1 number2: ')
+
+s.close()
+
+
+server:-
+
+import socket
+
+def addition(a, b):
+    return str(a + b)
+
+def subtraction(a, b):
+    return str(a - b)
+
+def multiplication(a, b):
+    return str(a * b)
+
+def division(a, b):
+    if b == 0:  # Handling division by zero
+        return "Division by zero error"
+    return str(a / b)
+
+def fibonacci(n):
+    a, b = 0, 1
+    fib_sequence = [a, b]
+    for _ in range(n - 2):
+        a, b = b, a + b
+        fib_sequence.append(b)
+    return str(fib_sequence)
+
+def is_prime(n):
+    if n <= 1:
+        return False
+    for i in range(2, int(n ** 0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+def check_prime(n):
+    if is_prime(n):
+        return "Prime"
+    else:
+        return "Not Prime"
+
+def is_leap_year(year):
+    if (year % 4 == 0 and year % 100 != 0) or year % 400 == 0:
+        return True
+    else:
+        return False
+
+def check_leap_year(year):
+    if is_leap_year(year):
+        return "Leap Year"
+    else:
+        return "Not a Leap Year"
+
+host = '127.0.0.1'
+port = 8002
+
+s = socket.socket()
+s.bind((host, port))
+s.listen(1)
+c, addr = s.accept()
+print('A client connected')
+
+while True:
+    data_received = c.recv(1024)
+    if not data_received:
+        break
+
+    data_str = data_received.decode()
+    print('Data from client: ' + data_str)
+
+    data = data_str.split()
+    
+    operation = data[0]
+    if operation == 'addition':
+        result = addition(int(data[1]), int(data[2]))
+    elif operation == 'subtraction':
+        result = subtraction(int(data[1]), int(data[2]))
+    elif operation == 'multiplication':
+        result = multiplication(int(data[1]), int(data[2]))
+    elif operation == 'division':
+        result = division(int(data[1]), int(data[2]))
+    elif operation == 'fibonacci':
+        result = fibonacci(int(data[1]))
+    elif operation == 'is_prime':
+        result = check_prime(int(data[1]))
+    elif operation == 'is_leap_year':
+        result = check_leap_year(int(data[1]))
+    else:
+        result = 'Invalid operation'
+
+    c.send(result.encode())
+
+c.close()
