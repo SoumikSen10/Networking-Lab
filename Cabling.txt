@@ -1,0 +1,28 @@
+Straight-through cable
+
+Side A               Side B
+
+Green White          Green White
+Green                Green
+Orange White         Orange White
+Blue                 Blue
+Blue White           Blue White
+Orange               Orange
+Brown White          Brown White
+Brown                Brown
+
+
+
+
+Cross-over cable
+
+Side A               Side B
+
+Green White          Orange White
+Green                Orange
+Orange White         Green White
+Blue                 Blue
+Blue White           Blue White
+Orange               Green
+Brown White          Brown White
+Brown                Brown
